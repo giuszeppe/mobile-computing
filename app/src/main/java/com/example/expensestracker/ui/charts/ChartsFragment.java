@@ -13,14 +13,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensestracker.R;
 import com.example.expensestracker.databinding.FragmentChartsBinding;
-import com.example.expensestracker.ui.ItemsAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChartsFragment extends Fragment {
     private ChartsViewModel chartsViewModel;
-    private ItemsAdapter adapter;
     private @NonNull FragmentChartsBinding binding;
     private RecyclerView itemsView;
     private List<String> items = new ArrayList<>();
@@ -42,17 +40,9 @@ public class ChartsFragment extends Fragment {
         binding = null;
     }
     private void fetchItems() {
-        chartsViewModel.getItems().observe(getViewLifecycleOwner(),
-                this::updateItemsList);
     }
     private void setUpRecyclerView() {
-        adapter = new ItemsAdapter(items);
-        itemsView.setAdapter(adapter);
-        itemsView.setLayoutManager(new
-                LinearLayoutManager(itemsView.getContext()));
     }
     private void updateItemsList(List<String> newItems) {
-        items.addAll(newItems);
-        adapter.notifyDataSetChanged();
     }
 }

@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.expensestracker.Expense;
+import com.example.expensestracker.ExpenseRepository;
 import com.example.expensestracker.R;
 import com.example.expensestracker.databinding.FragmentHomeBinding;
 
@@ -52,7 +54,7 @@ public class HomeFragment extends Fragment {
             }, year, month, day).show();
         });
 
-        // a watcher for the two input fields
+        // a watcher for the input fields
         binding.editDescription.addTextChangedListener(new SimpleWatcher(this::checkFormValidity));
         binding.editCost.addTextChangedListener(new SimpleWatcher(this::checkFormValidity));
         binding.spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -68,6 +70,10 @@ public class HomeFragment extends Fragment {
             String category = binding.spinnerCategory.getSelectedItem().toString();
             String cost = binding.editCost.getText().toString();
             String date = binding.editDate.getText().toString();
+
+            ExpenseRepository.getInstance().addExpense(
+                    new Expense(description, category, cost, date)
+            );
 
             String summary = "Saved expense: " + description + " cost: " + cost + " $";
             Toast.makeText(requireContext(), summary, Toast.LENGTH_LONG).show();
