@@ -59,7 +59,6 @@ public class HomeFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 checkFormValidity();
             }
-
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
@@ -80,7 +79,6 @@ public class HomeFragment extends Fragment {
             binding.editCost.getText().clear();
             binding.editDate.setText("0", TextView.BufferType.EDITABLE);
             binding.editDate.getText().clear();
-
         });
 
         return root;
