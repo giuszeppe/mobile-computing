@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.expensestracker.Expense;
-import com.example.expensestracker.ExpenseRepository;
+import com.example.expensestracker.backend.DbHelper;
 import com.example.expensestracker.databinding.FragmentListBinding;
 import com.example.expensestracker.ui.ExpenseAdapter;
 
@@ -26,7 +26,7 @@ public class ListFragment extends Fragment {
         View root = binding.getRoot();
 
         // Load from repository
-        List<Expense> expenses = ExpenseRepository.getInstance().getExpenses();
+        List<Expense> expenses = new DbHelper(requireContext()).getAllExpenses();
 
         ExpenseAdapter adapter = new ExpenseAdapter(expenses);
         binding.recyclerExpenses.setLayoutManager(new LinearLayoutManager(requireContext()));

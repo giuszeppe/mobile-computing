@@ -1,13 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".ui.charts.ChartsFragment">
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/items_list"
-        android:paddingTop="16dp"
+
+    <Button
+        android:id="@+id/button_pick_dates"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Date Range" />
+
+    <TextView
+        android:id="@+id/text_selected_range"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No range selected"
+        android:layout_marginTop="8dp" />
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pie_chart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

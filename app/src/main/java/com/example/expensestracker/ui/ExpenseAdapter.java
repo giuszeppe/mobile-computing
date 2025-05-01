@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensestracker.R;
 import com.example.expensestracker.Expense;
+import com.example.expensestracker.backend.DbHelper;
 
 import java.util.List;
 
@@ -63,6 +64,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
             date.setText(expense.getDate());
 
             deleteButton.setOnClickListener(v -> {
+                new DbHelper(context).deleteExpense(expense.getId());
                 expenses.remove(getAdapterPosition());
                 notifyItemRemoved(getAdapterPosition());
             });
@@ -100,6 +102,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
                         expense.setCost(editCost.getText().toString());
                         expense.setDate(editDate.getText().toString());
                         expense.setCategory(categorySpinner.getSelectedItem().toString());
+                        new DbHelper(context).updateExpense(expense);
                         notifyItemChanged(position);
                     })
                     .setNegativeButton("Cancel", null)

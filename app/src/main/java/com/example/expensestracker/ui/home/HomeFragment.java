@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.expensestracker.Expense;
 import com.example.expensestracker.ExpenseRepository;
 import com.example.expensestracker.R;
+import com.example.expensestracker.backend.DbHelper;
 import com.example.expensestracker.databinding.FragmentHomeBinding;
 
 import java.util.Calendar;
@@ -71,8 +72,8 @@ public class HomeFragment extends Fragment {
             String cost = binding.editCost.getText().toString();
             String date = binding.editDate.getText().toString();
 
-            ExpenseRepository.getInstance().addExpense(
-                    new Expense(description, category, cost, date)
+            new DbHelper(requireContext()).insertExpense(
+                    new Expense(-1, description, category, cost, date)
             );
 
             String summary = "Saved expense: " + description + " cost: " + cost + " $";
