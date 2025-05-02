@@ -13,11 +13,30 @@ import java.util.List;
 
 public class DbHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "expenses.db";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+    public String getCategoryColor(String categoryName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String colorHex = "#CCCCCC"; // default fallback
+
+        Cursor cursor = db.query(
+                "categories",
+                new String[]{"colorHex"},
+                "name = ?",
+                new String[]{categoryName},
+                null, null, null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            colorHex = cursor.getString(cursor.getColumnIndexOrThrow("colorHex"));
+            cursor.close();
+        }
+
+        return colorHex;
     }
 
     @Override
@@ -36,6 +55,17 @@ public class DbHelper extends SQLiteOpenHelper {
 
         db.execSQL(SQL_CREATE_EXPENSES);
         db.execSQL(SQL_CREATE_CATEGORIES);
+
+        insertInitialCategory(db, "Food", "#FF5722");
+        insertInitialCategory(db, "Transport", "#3F51B5");
+        insertInitialCategory(db, "Other", "#9E9E9E");
+    }
+
+    private void insertInitialCategory(SQLiteDatabase db, String name, String hex) {
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("colorHex", hex);
+        db.insert("categories", null, values);
     }
 
     @Override
@@ -44,7 +74,6 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS categories");
         onCreate(db);
     }
-
 
     public List<Category> getAllCategories() {
         SQLiteDatabase db = getReadableDatabase();
@@ -81,9 +110,15 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void deleteCategory(Category category) {
-        getWritableDatabase().delete("categories", "id=?", new String[]{String.valueOf(category.getId())});
-        // Optionally: also delete related expenses
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues update = new ContentValues();
+        update.put("category", "Other");
+        db.update("expenses", update, "category = ?", new String[]{category.getName()});
+
+        db.delete("categories", "id=?", new String[]{String.valueOf(category.getId())});
     }
+
 
     public long insertExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();

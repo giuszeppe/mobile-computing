@@ -5,26 +5,48 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="20dp"
+    android:background="@android:color/white"
     tools:context=".ui.charts.ChartsFragment">
 
+    <!-- Title -->
+    <TextView
+        android:id="@+id/text_charts_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Spending Breakdown"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Pick Date Button -->
     <Button
         android:id="@+id/button_pick_dates"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pick Date Range" />
+        android:text="Pick Date Range"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="@android:color/white" />
 
+    <!-- Selected Range Display -->
     <TextView
         android:id="@+id/text_selected_range"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="No range selected"
-        android:layout_marginTop="8dp" />
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:textStyle="italic"
+        android:layout_marginTop="8dp"
+        android:gravity="center_horizontal" />
 
+    <!-- Pie Chart -->
     <com.github.mikephil.charting.charts.PieChart
         android:id="@+id/pie_chart"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp" />
 </LinearLayout>

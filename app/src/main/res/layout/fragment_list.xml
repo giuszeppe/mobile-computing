@@ -1,13 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="32dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.list.ListFragment">
+    android:background="@android:color/white">
+
+    <!-- Page Title -->
+    <TextView
+        android:id="@+id/text_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Expenses Overview"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:paddingBottom="12dp" />
+
+    <!-- Filter by Category -->
+    <Spinner
+        android:id="@+id/filter_category_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Pick Date Range -->
+    <Button
+        android:id="@+id/button_pick_range"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pick Date Range"
+        android:layout_marginBottom="4dp"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="@android:color/white" />
+
+    <!-- Selected Date Range Display -->
+    <TextView
+        android:id="@+id/selected_range"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="All Dates"
+        android:textStyle="italic"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="8dp" />
+
+
+
+    <!-- Total Amount Display -->
+    <TextView
+        android:id="@+id/text_total_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total: €0.00"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@android:color/holo_green_dark"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Expenses List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_expenses"
-        android:paddingTop="16dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+</LinearLayout>
