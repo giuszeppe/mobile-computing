@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.expensestracker.Expense;
+import com.example.expensestracker.model.Expense;
 import com.example.expensestracker.backend.DbHelper;
 import com.example.expensestracker.databinding.FragmentListBinding;
 import com.example.expensestracker.ui.ExpenseAdapter;

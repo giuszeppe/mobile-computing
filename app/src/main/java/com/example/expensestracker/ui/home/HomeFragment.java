@@ -10,8 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.expensestracker.Expense;
-import com.example.expensestracker.ExpenseRepository;
+import com.example.expensestracker.model.Expense;
 import com.example.expensestracker.R;
 import com.example.expensestracker.backend.DbHelper;
 import com.example.expensestracker.databinding.FragmentHomeBinding;

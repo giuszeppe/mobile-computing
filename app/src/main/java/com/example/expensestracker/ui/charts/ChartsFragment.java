@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.expensestracker.R;
 import com.example.expensestracker.backend.DbHelper;
-import com.example.expensestracker.Expense;
+import com.example.expensestracker.model.Expense;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.*;

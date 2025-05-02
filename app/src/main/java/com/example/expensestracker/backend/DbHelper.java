@@ -4,33 +4,85 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.*;
-import com.example.expensestracker.Expense;
+
+import com.example.expensestracker.model.Category;
+import com.example.expensestracker.model.Expense;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DbHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "expenses.db";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    @Override
     public void onCreate(SQLiteDatabase db) {
-        String SQL_CREATE_ENTRIES = "CREATE TABLE " + ExpenseContract.ExpenseEntry.TABLE_NAME + " (" +
+        String SQL_CREATE_EXPENSES = "CREATE TABLE " + ExpenseContract.ExpenseEntry.TABLE_NAME + " (" +
                 ExpenseContract.ExpenseEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION + " TEXT," +
                 ExpenseContract.ExpenseEntry.COLUMN_CATEGORY + " TEXT," +
                 ExpenseContract.ExpenseEntry.COLUMN_COST + " TEXT," +
                 ExpenseContract.ExpenseEntry.COLUMN_DATE + " TEXT)";
-        db.execSQL(SQL_CREATE_ENTRIES);
+
+        String SQL_CREATE_CATEGORIES = "CREATE TABLE categories (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "name TEXT UNIQUE, " +
+                "colorHex TEXT)";
+
+        db.execSQL(SQL_CREATE_EXPENSES);
+        db.execSQL(SQL_CREATE_CATEGORIES);
     }
 
+    @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + ExpenseContract.ExpenseEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS categories");
         onCreate(db);
+    }
+
+
+    public List<Category> getAllCategories() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query("categories", null, null, null, null, null, null);
+        List<Category> list = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+            String colorHex = cursor.getString(cursor.getColumnIndexOrThrow("colorHex"));
+            list.add(new Category(id, name, colorHex));
+        }
+        cursor.close();
+        return list;
+    }
+
+    public void insertCategory(String name, String colorHex) {
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("colorHex", colorHex);
+        getWritableDatabase().insert("categories", null, values);
+    }
+
+    public void updateCategory(Category category, String oldName) {
+        ContentValues values = new ContentValues();
+        values.put("name", category.getName());
+        values.put("colorHex", category.getColorHex());
+        String[] whereArgs = { String.valueOf(category.getId()) };
+        getWritableDatabase().update("categories", values, "id=?", whereArgs);
+
+        // Update related expenses
+        ContentValues expenseUpdate = new ContentValues();
+        expenseUpdate.put("category", category.getName());
+        getWritableDatabase().update("expenses", expenseUpdate, "category=?", new String[]{oldName});
+    }
+
+    public void deleteCategory(Category category) {
+        getWritableDatabase().delete("categories", "id=?", new String[]{String.valueOf(category.getId())});
+        // Optionally: also delete related expenses
     }
 
     public long insertExpense(Expense expense) {

@@ -1,6 +1,6 @@
 package com.example.expensestracker;
 
-import com.example.expensestracker.Expense;
+import com.example.expensestracker.model.Expense;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.example.expensestracker;
+package com.example.expensestracker.model;
 public class Expense {
     private long id;
     private String description;
