@@ -13,7 +13,7 @@ import java.util.List;
 
 public class DbHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "expenses.db";
 
     public DbHelper(Context context) {
@@ -37,6 +37,22 @@ public class DbHelper extends SQLiteOpenHelper {
         }
 
         return colorHex;
+    }
+
+    public interface CategoryChangeListener {
+        void onCategoryChanged();
+    }
+
+    private static final List<CategoryChangeListener> categoryChangeListeners = new ArrayList<>();
+
+    public static void registerCategoryChangeListener(CategoryChangeListener listener) {
+        categoryChangeListeners.add(listener);
+    }
+
+    public static void notifyCategoryChangeListeners() {
+        for (CategoryChangeListener listener : categoryChangeListeners) {
+            listener.onCategoryChanged();
+        }
     }
 
     @Override
@@ -75,6 +91,20 @@ public class DbHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public List<String> getAllCategoryNames() {
+        List<String> categories = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT name FROM categories", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                categories.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return categories;
+    }
+
     public List<Category> getAllCategories() {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query("categories", null, null, null, null, null, null);
@@ -94,6 +124,7 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put("name", name);
         values.put("colorHex", colorHex);
         getWritableDatabase().insert("categories", null, values);
+        notifyCategoryChangeListeners();
     }
 
     public void updateCategory(Category category, String oldName) {
@@ -107,6 +138,8 @@ public class DbHelper extends SQLiteOpenHelper {
         ContentValues expenseUpdate = new ContentValues();
         expenseUpdate.put("category", category.getName());
         getWritableDatabase().update("expenses", expenseUpdate, "category=?", new String[]{oldName});
+        notifyCategoryChangeListeners();
+
     }
 
     public void deleteCategory(Category category) {
@@ -117,8 +150,8 @@ public class DbHelper extends SQLiteOpenHelper {
         db.update("expenses", update, "category = ?", new String[]{category.getName()});
 
         db.delete("categories", "id=?", new String[]{String.valueOf(category.getId())});
+        notifyCategoryChangeListeners();
     }
-
 
     public long insertExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();

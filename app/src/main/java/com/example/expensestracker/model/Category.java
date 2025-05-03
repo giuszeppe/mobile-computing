@@ -10,8 +10,7 @@ public class Category {
         this.name = name;
         this.colorHex = colorHex;
     }
-
-    public long getId() { return id; }
+    public long getId() {return id; };
     public String getName() { return name; }
     public String getColorHex() { return colorHex; }
 

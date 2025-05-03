@@ -38,8 +38,10 @@ public class HomeFragment extends Fragment {
     private void setupObservers() {
         viewModel.getCategoryNames().observe(getViewLifecycleOwner(), this::setupSpinner);
 
-        viewModel.isFormValid().observe(getViewLifecycleOwner(), isValid ->
-                binding.buttonSave.setEnabled(isValid));
+        viewModel.isFormValid().observe(getViewLifecycleOwner(), isValid -> {
+            binding.buttonSave.setEnabled(isValid);
+            binding.buttonSave.setAlpha(isValid ? 1.0f : 0.5f);
+        });
 
         viewModel.getSaveResult().observe(getViewLifecycleOwner(), msg -> {
             Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();

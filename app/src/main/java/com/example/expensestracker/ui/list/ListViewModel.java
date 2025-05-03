@@ -60,6 +60,12 @@ public class ListViewModel extends AndroidViewModel {
         applyFilters();
     }
 
+    public void reloadExpenses() {
+        allExpenses.clear();
+        allExpenses.addAll(db.getAllExpenses());
+        applyFilters();
+    }
+
     private void applyFilters() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String start = sdf.format(startDate.getTime());

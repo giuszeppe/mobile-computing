@@ -111,16 +111,23 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
             editCost.setText(expense.getCost());
             editDate.setText(expense.getDate());
 
-            ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(
+            DbHelper dbHelper = new DbHelper(context);
+            List<String> categoryList = dbHelper.getAllCategoryNames();
+
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                     context,
-                    R.array.expense_categories,
-                    android.R.layout.simple_spinner_item
+                    android.R.layout.simple_spinner_item,
+                    categoryList
             );
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             categorySpinner.setAdapter(spinnerAdapter);
 
-            int index = spinnerAdapter.getPosition(expense.getCategory());
-            categorySpinner.setSelection(index);
+            // Pre-select the current category
+            int index = categoryList.indexOf(expense.getCategory());
+            if (index != -1) {
+                categorySpinner.setSelection(index);
+            }
+
 
             new AlertDialog.Builder(context)
                     .setTitle("Edit Expense")

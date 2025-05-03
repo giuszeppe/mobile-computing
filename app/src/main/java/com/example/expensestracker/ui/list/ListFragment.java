@@ -86,7 +86,9 @@ public class ListFragment extends Fragment {
     private void setupRecyclerView(View root) {
         RecyclerView recyclerView = root.findViewById(R.id.recycler_expenses);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new ExpenseAdapter(requireContext(), List.of(), () -> viewModel.setCategory(categorySpinner.getSelectedItem().toString()));
+        adapter = new ExpenseAdapter(requireContext(), List.of(), () -> {
+            viewModel.reloadExpenses();
+        });
         recyclerView.setAdapter(adapter);
     }
 
@@ -119,20 +121,21 @@ public class ListFragment extends Fragment {
         startDialog.show();
     }
 
-    private boolean viewModelHasDateFilter() {
-        return !selectedRangeText.getText().toString().equals("All Dates");
-    }
-
     private void updateDateLabel() {
-        if (!viewModelHasDateFilter()) {
-            selectedRangeText.setText("All Dates");
-            return;
-        }
-
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String startStr = sdf.format(startDate.getTime());
         String endStr = sdf.format(endDate.getTime());
         selectedRangeText.setText("From " + startStr + " to " + endStr);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshDataFromDatabase();
+    }
+
+    private void refreshDataFromDatabase() {
+        viewModel.reloadExpenses(); // you’ll implement this next in your ViewModel
     }
 
     @Override

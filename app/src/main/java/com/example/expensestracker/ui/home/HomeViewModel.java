@@ -24,6 +24,9 @@ public class HomeViewModel extends AndroidViewModel {
         super(application);
         dbHelper = new DbHelper(application);
         loadCategories();
+        DbHelper.registerCategoryChangeListener(() -> {
+            loadCategories(); // reload categories if any change is detected
+        });
     }
 
     public LiveData<List<String>> getCategoryNames() {
@@ -39,8 +42,20 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     public void validateForm(String desc, String cost, String date, int catPos) {
-        boolean valid = !desc.trim().isEmpty() && !cost.trim().isEmpty()
-                && !date.trim().isEmpty() && catPos != -1;
+        boolean valid = !desc.trim().isEmpty()
+                && !cost.trim().isEmpty()
+                && !date.trim().isEmpty()
+                && catPos != -1;
+
+        // Ensure cost is a valid number
+        try {
+            if (!cost.trim().isEmpty()) {
+                Double.parseDouble(cost.trim());
+            }
+        } catch (NumberFormatException e) {
+            valid = false;
+        }
+
         isFormValid.setValue(valid);
     }
 
