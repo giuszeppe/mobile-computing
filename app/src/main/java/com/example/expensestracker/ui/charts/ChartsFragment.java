@@ -18,12 +18,10 @@ import com.github.mikephil.charting.data.*;
 import java.util.*;
 
 public class ChartsFragment extends Fragment {
-
     private TextView textRange;
     private PieChart pieChart;
     private Calendar startDate = Calendar.getInstance();
     private Calendar endDate = Calendar.getInstance();
-
     private ChartsViewModel viewModel;
 
     @Override
@@ -46,12 +44,16 @@ public class ChartsFragment extends Fragment {
         return view;
     }
 
+    // Opens two date pickers to select start and end dates
     private void pickDateRange() {
         DatePickerDialog startDialog = new DatePickerDialog(requireContext(), (view, year, month, dayOfMonth) -> {
+            // Set start date
             startDate.set(year, month, dayOfMonth);
 
+            // Show end date picker after start date is picked
             DatePickerDialog endDialog = new DatePickerDialog(requireContext(), (view2, year2, month2, day2) -> {
                 endDate.set(year2, month2, day2);
+                // Notify ViewModel of the selected date range
                 viewModel.setDateRange(startDate, endDate);
             }, endDate.get(Calendar.YEAR), endDate.get(Calendar.MONTH), endDate.get(Calendar.DAY_OF_MONTH));
 
@@ -65,21 +67,28 @@ public class ChartsFragment extends Fragment {
     }
 
     private void observeViewModel() {
+        // Observe chart entries
         viewModel.getChartEntries().observe(getViewLifecycleOwner(), entries -> {
             PieDataSet dataSet = new PieDataSet(entries, "Expense Categories");
             dataSet.setValueTextSize(14f);
+
+            // Observe colors for the pie chart and apply them
             viewModel.getChartColors().observe(getViewLifecycleOwner(), colors -> {
                 dataSet.setColors(colors);
                 PieData pieData = new PieData(dataSet);
                 pieChart.setData(pieData);
                 pieChart.setUsePercentValues(true);
+
+                // Remove chart description
                 Description desc = new Description();
                 desc.setText("");
                 pieChart.setDescription(desc);
+
                 pieChart.invalidate();
             });
         });
 
+        // Observe label for the selected date range
         viewModel.getDateRangeLabel().observe(getViewLifecycleOwner(), label -> {
             textRange.setText(label);
         });

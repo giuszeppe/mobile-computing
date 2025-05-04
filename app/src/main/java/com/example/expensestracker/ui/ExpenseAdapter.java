@@ -2,6 +2,7 @@ package com.example.expensestracker.ui;
 
 import com.google.android.material.card.MaterialCardView;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +15,9 @@ import com.example.expensestracker.R;
 import com.example.expensestracker.model.Expense;
 import com.example.expensestracker.backend.DbHelper;
 
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHolder> {
     private List<Expense> expenses;
@@ -56,7 +59,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
         Button editButton, deleteButton;
         MaterialCardView expenseCard;
 
-
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             description = itemView.findViewById(R.id.expense_description);
@@ -92,10 +94,9 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
                 int borderColor = android.graphics.Color.parseColor(colorHex);
                 expenseCard.setStrokeColor(borderColor);
             } catch (IllegalArgumentException e) {
-                // Fallback color if parse fails
+                // Fallback color if parse fails by any chance
                 expenseCard.setStrokeColor(android.graphics.Color.GRAY);
             }
-
 
             editButton.setOnClickListener(v -> showEditDialog(expense, position));
         }
@@ -110,6 +111,23 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
             editDesc.setText(expense.getDescription());
             editCost.setText(expense.getCost());
             editDate.setText(expense.getDate());
+
+            // Show DatePickerDialog when editDate is clicked
+            editDate.setFocusable(false);
+            editDate.setOnClickListener(v -> {
+                Calendar calendar = Calendar.getInstance();
+                String[] parts = expense.getDate().split("-");
+                if (parts.length == 3) {
+                    calendar.set(Calendar.YEAR, Integer.parseInt(parts[0]));
+                    calendar.set(Calendar.MONTH, Integer.parseInt(parts[1]) - 1); // Month is 0-based
+                    calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(parts[2]));
+                }
+
+                new DatePickerDialog(context, (view, year, month, dayOfMonth) -> {
+                    String formattedDate = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth);
+                    editDate.setText(formattedDate);
+                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+            });
 
             DbHelper dbHelper = new DbHelper(context);
             List<String> categoryList = dbHelper.getAllCategoryNames();
@@ -128,29 +146,27 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHold
                 categorySpinner.setSelection(index);
             }
 
-
             new AlertDialog.Builder(context)
-                    .setTitle("Edit Expense")
-                    .setView(dialogView)
-                    .setPositiveButton("Save", (dialog, which) -> {
-                        expense.setDescription(editDesc.getText().toString());
-                        expense.setCost(editCost.getText().toString());
-                        expense.setDate(editDate.getText().toString());
-                        expense.setCategory(categorySpinner.getSelectedItem().toString());
+                .setTitle("Edit Expense")
+                .setView(dialogView)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    expense.setDescription(editDesc.getText().toString());
+                    expense.setCost(editCost.getText().toString());
+                    expense.setDate(editDate.getText().toString());
+                    expense.setCategory(categorySpinner.getSelectedItem().toString());
 
-                        new DbHelper(context).updateExpense(expense);
-                        notifyItemChanged(position);
+                    new DbHelper(context).updateExpense(expense);
+                    notifyItemChanged(position);
 
-                        if (listener != null) {
-                            listener.onExpenseListChanged();
-                        }
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+                    if (listener != null) {
+                        listener.onExpenseListChanged();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
         }
     }
 
-    // 🔁 Callback interface to notify fragment/activity on changes
     public interface OnExpenseChangeListener {
         void onExpenseListChanged();
     }

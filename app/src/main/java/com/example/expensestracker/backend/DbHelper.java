@@ -19,25 +19,6 @@ public class DbHelper extends SQLiteOpenHelper {
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
-    public String getCategoryColor(String categoryName) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String colorHex = "#CCCCCC"; // default fallback
-
-        Cursor cursor = db.query(
-                "categories",
-                new String[]{"colorHex"},
-                "name = ?",
-                new String[]{categoryName},
-                null, null, null
-        );
-
-        if (cursor != null && cursor.moveToFirst()) {
-            colorHex = cursor.getString(cursor.getColumnIndexOrThrow("colorHex"));
-            cursor.close();
-        }
-
-        return colorHex;
-    }
 
     public interface CategoryChangeListener {
         void onCategoryChanged();
@@ -57,30 +38,30 @@ public class DbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String SQL_CREATE_EXPENSES = "CREATE TABLE " + ExpenseContract.ExpenseEntry.TABLE_NAME + " (" +
-                ExpenseContract.ExpenseEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION + " TEXT," +
-                ExpenseContract.ExpenseEntry.COLUMN_CATEGORY + " TEXT," +
-                ExpenseContract.ExpenseEntry.COLUMN_COST + " TEXT," +
+        String createExpensesTable = "CREATE TABLE " + ExpenseContract.ExpenseEntry.TABLE_NAME + " (" +
+                ExpenseContract.ExpenseEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION + " TEXT, " +
+                ExpenseContract.ExpenseEntry.COLUMN_CATEGORY + " TEXT, " +
+                ExpenseContract.ExpenseEntry.COLUMN_COST + " TEXT, " +
                 ExpenseContract.ExpenseEntry.COLUMN_DATE + " TEXT)";
 
-        String SQL_CREATE_CATEGORIES = "CREATE TABLE categories (" +
+        String createCategoriesTable = "CREATE TABLE categories (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT UNIQUE, " +
                 "colorHex TEXT)";
 
-        db.execSQL(SQL_CREATE_EXPENSES);
-        db.execSQL(SQL_CREATE_CATEGORIES);
+        db.execSQL(createExpensesTable);
+        db.execSQL(createCategoriesTable);
 
         insertInitialCategory(db, "Food", "#FF5722");
         insertInitialCategory(db, "Transport", "#3F51B5");
         insertInitialCategory(db, "Other", "#9E9E9E");
     }
 
-    private void insertInitialCategory(SQLiteDatabase db, String name, String hex) {
+    private void insertInitialCategory(SQLiteDatabase db, String name, String colorHex) {
         ContentValues values = new ContentValues();
         values.put("name", name);
-        values.put("colorHex", hex);
+        values.put("colorHex", colorHex);
         db.insert("categories", null, values);
     }
 
@@ -91,32 +72,52 @@ public class DbHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public String getCategoryColor(String categoryName) {
+        String colorHex = "#CCCCCC"; // default
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        try (Cursor cursor = db.query(
+                "categories",
+                new String[]{"colorHex"},
+                "name = ?",
+                new String[]{categoryName},
+                null, null, null)) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+                colorHex = cursor.getString(cursor.getColumnIndexOrThrow("colorHex"));
+            }
+        }
+
+        return colorHex;
+    }
+
     public List<String> getAllCategoryNames() {
         List<String> categories = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT name FROM categories", null);
 
-        if (cursor.moveToFirst()) {
-            do {
+        try (Cursor cursor = db.rawQuery("SELECT name FROM categories", null)) {
+            while (cursor.moveToNext()) {
                 categories.add(cursor.getString(0));
-            } while (cursor.moveToNext());
+            }
         }
-        cursor.close();
+
         return categories;
     }
 
     public List<Category> getAllCategories() {
+        List<Category> categories = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query("categories", null, null, null, null, null, null);
-        List<Category> list = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-            String colorHex = cursor.getString(cursor.getColumnIndexOrThrow("colorHex"));
-            list.add(new Category(id, name, colorHex));
+
+        try (Cursor cursor = db.query("categories", null, null, null, null, null, null)) {
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                String colorHex = cursor.getString(cursor.getColumnIndexOrThrow("colorHex"));
+                categories.add(new Category(id, name, colorHex));
+            }
         }
-        cursor.close();
-        return list;
+
+        return categories;
     }
 
     public void insertCategory(String name, String colorHex) {
@@ -128,79 +129,88 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void updateCategory(Category category, String oldName) {
+        SQLiteDatabase db = getWritableDatabase();
+
         ContentValues values = new ContentValues();
         values.put("name", category.getName());
         values.put("colorHex", category.getColorHex());
-        String[] whereArgs = { String.valueOf(category.getId()) };
-        getWritableDatabase().update("categories", values, "id=?", whereArgs);
+
+        db.update("categories", values, "id=?", new String[]{String.valueOf(category.getId())});
 
         // Update related expenses
         ContentValues expenseUpdate = new ContentValues();
         expenseUpdate.put("category", category.getName());
-        getWritableDatabase().update("expenses", expenseUpdate, "category=?", new String[]{oldName});
-        notifyCategoryChangeListeners();
+        db.update("expenses", expenseUpdate, "category=?", new String[]{oldName});
 
+        notifyCategoryChangeListeners();
     }
 
     public void deleteCategory(Category category) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        // Reassign related expenses to "Other"
         ContentValues update = new ContentValues();
         update.put("category", "Other");
         db.update("expenses", update, "category = ?", new String[]{category.getName()});
 
+        // Delete the category
         db.delete("categories", "id=?", new String[]{String.valueOf(category.getId())});
+
         notifyCategoryChangeListeners();
     }
 
     public long insertExpense(Expense expense) {
-        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION, expense.getDescription());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_CATEGORY, expense.getCategory());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_COST, expense.getCost());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_DATE, expense.getDate());
-        return db.insert(ExpenseContract.ExpenseEntry.TABLE_NAME, null, values);
+
+        return getWritableDatabase().insert(ExpenseContract.ExpenseEntry.TABLE_NAME, null, values);
     }
 
     public List<Expense> getAllExpenses() {
-        SQLiteDatabase db = this.getReadableDatabase();
         List<Expense> expenses = new ArrayList<>();
-        Cursor cursor = db.query(
+        SQLiteDatabase db = getReadableDatabase();
+
+        try (Cursor cursor = db.query(
                 ExpenseContract.ExpenseEntry.TABLE_NAME,
                 null, null, null, null, null,
-                ExpenseContract.ExpenseEntry.COLUMN_DATE + " DESC"
-        );
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry._ID));
-            String desc = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION));
-            String cat = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_CATEGORY));
-            String cost = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_COST));
-            String date = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_DATE));
-            expenses.add(new Expense(id, desc, cat, cost, date));
+                ExpenseContract.ExpenseEntry.COLUMN_DATE + " DESC")) {
+
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry._ID));
+                String desc = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION));
+                String cat = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_CATEGORY));
+                String cost = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_COST));
+                String date = cursor.getString(cursor.getColumnIndexOrThrow(ExpenseContract.ExpenseEntry.COLUMN_DATE));
+                expenses.add(new Expense(id, desc, cat, cost, date));
+            }
         }
-        cursor.close();
+
         return expenses;
     }
 
     public void updateExpense(Expense expense) {
-        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(ExpenseContract.ExpenseEntry.COLUMN_DESCRIPTION, expense.getDescription());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_CATEGORY, expense.getCategory());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_COST, expense.getCost());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_DATE, expense.getDate());
 
-        String selection = ExpenseContract.ExpenseEntry._ID + " = ?";
-        String[] selectionArgs = {String.valueOf(expense.getId())};
-
-        db.update(ExpenseContract.ExpenseEntry.TABLE_NAME, values, selection, selectionArgs);
+        getWritableDatabase().update(
+                ExpenseContract.ExpenseEntry.TABLE_NAME,
+                values,
+                ExpenseContract.ExpenseEntry._ID + " = ?",
+                new String[]{String.valueOf(expense.getId())}
+        );
     }
 
     public void deleteExpense(long id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(ExpenseContract.ExpenseEntry.TABLE_NAME,
+        getWritableDatabase().delete(
+                ExpenseContract.ExpenseEntry.TABLE_NAME,
                 ExpenseContract.ExpenseEntry._ID + " = ?",
-                new String[]{String.valueOf(id)});
+                new String[]{String.valueOf(id)}
+        );
     }
 }

@@ -55,17 +55,13 @@ public class ListViewModel extends AndroidViewModel {
         isDateFilterActive = true;
         applyFilters();
     }
-    public void clearDateFilter() {
-        isDateFilterActive = false;
-        applyFilters();
-    }
-
     public void reloadExpenses() {
         allExpenses.clear();
         allExpenses.addAll(db.getAllExpenses());
         applyFilters();
     }
 
+    // Filter out expenses taking into account filters
     private void applyFilters() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String start = sdf.format(startDate.getTime());
@@ -91,7 +87,6 @@ public class ListViewModel extends AndroidViewModel {
         filteredExpenses.setValue(result);
         totalAmount.setValue(total);
     }
-
     public List<String> getAllCategoryNames() {
         List<String> categoryNames = new ArrayList<>();
         categoryNames.add("All");

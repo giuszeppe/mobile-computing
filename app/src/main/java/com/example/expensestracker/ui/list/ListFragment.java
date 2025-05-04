@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensestracker.R;
 import com.example.expensestracker.databinding.FragmentListBinding;
-import com.example.expensestracker.model.Expense;
 import com.example.expensestracker.ui.ExpenseAdapter;
 
 import java.text.SimpleDateFormat;
@@ -28,24 +27,23 @@ import java.util.List;
 import java.util.Locale;
 
 public class ListFragment extends Fragment {
-
     private ListViewModel viewModel;
     private FragmentListBinding binding;
     private ExpenseAdapter adapter;
-
     private Calendar startDate = Calendar.getInstance();
     private Calendar endDate = Calendar.getInstance();
-
     private TextView selectedRangeText;
     private TextView totalAmountText;
     private Spinner categorySpinner;
 
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_list, container, false);
 
         viewModel = new ViewModelProvider(this).get(ListViewModel.class);
 
+        // Get UI references
         selectedRangeText = root.findViewById(R.id.selected_range);
         totalAmountText = root.findViewById(R.id.text_total_amount);
         categorySpinner = root.findViewById(R.id.filter_category_spinner);
@@ -60,6 +58,7 @@ public class ListFragment extends Fragment {
         return root;
     }
 
+    // Initializes the category dropdown and handles user selection
     private void setupCategorySpinner() {
         List<String> categories = viewModel.getAllCategoryNames();
 
@@ -87,7 +86,7 @@ public class ListFragment extends Fragment {
         RecyclerView recyclerView = root.findViewById(R.id.recycler_expenses);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new ExpenseAdapter(requireContext(), List.of(), () -> {
-            viewModel.reloadExpenses();
+            viewModel.reloadExpenses(); // Reload on item change
         });
         recyclerView.setAdapter(adapter);
     }
@@ -102,14 +101,16 @@ public class ListFragment extends Fragment {
         });
     }
 
+    // Opens two DatePickerDialogs to set a date range
     private void showDatePickerDialog() {
         DatePickerDialog startDialog = new DatePickerDialog(requireContext(), (view, year, month, day) -> {
             startDate.set(year, month, day);
 
+            // Once start date is picked, show dialog for end date
             DatePickerDialog endDialog = new DatePickerDialog(requireContext(), (view1, year1, month1, day1) -> {
                 endDate.set(year1, month1, day1);
-                viewModel.setDateRange(startDate, endDate);
-                updateDateLabel();
+                viewModel.setDateRange(startDate, endDate); // Set filter in ViewModel
+                updateDateLabel(); // Update label
             }, endDate.get(Calendar.YEAR), endDate.get(Calendar.MONTH), endDate.get(Calendar.DAY_OF_MONTH));
 
             endDialog.setTitle("Select End Date");
@@ -121,6 +122,7 @@ public class ListFragment extends Fragment {
         startDialog.show();
     }
 
+    // Update label showing the currently selected date range
     private void updateDateLabel() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String startStr = sdf.format(startDate.getTime());
@@ -135,7 +137,7 @@ public class ListFragment extends Fragment {
     }
 
     private void refreshDataFromDatabase() {
-        viewModel.reloadExpenses(); // you’ll implement this next in your ViewModel
+        viewModel.reloadExpenses();
     }
 
     @Override
