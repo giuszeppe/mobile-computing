@@ -65,6 +65,10 @@ public class HomeViewModel extends AndroidViewModel {
         saveResult.setValue("Saved expense: " + description + " cost: " + cost + " $");
     }
 
+    public void clearSaveResult() {
+        saveResult.setValue("");
+    }
+
     private void loadCategories() {
         List<Category> categories = dbHelper.getAllCategories();
         List<String> names = new ArrayList<>();

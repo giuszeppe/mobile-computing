@@ -20,6 +20,23 @@ public class DbHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    public interface ExpenseChangeListener {
+        void onExpensesChanged();
+    }
+
+    private static final List<ExpenseChangeListener> expenseChangeListeners = new ArrayList<>();
+
+    public static void registerExpenseChangeListener(ExpenseChangeListener listener) {
+        expenseChangeListeners.add(listener);
+    }
+
+    public static void notifyExpenseChangeListeners() {
+        for (ExpenseChangeListener listener : expenseChangeListeners) {
+            listener.onExpensesChanged();
+        }
+    }
+
+
     public interface CategoryChangeListener {
         void onCategoryChanged();
     }
@@ -166,7 +183,9 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put(ExpenseContract.ExpenseEntry.COLUMN_COST, expense.getCost());
         values.put(ExpenseContract.ExpenseEntry.COLUMN_DATE, expense.getDate());
 
-        return getWritableDatabase().insert(ExpenseContract.ExpenseEntry.TABLE_NAME, null, values);
+        long result = getWritableDatabase().insert(ExpenseContract.ExpenseEntry.TABLE_NAME, null, values);
+        notifyExpenseChangeListeners();
+        return result;
     }
 
     public List<Expense> getAllExpenses() {
@@ -204,6 +223,8 @@ public class DbHelper extends SQLiteOpenHelper {
                 ExpenseContract.ExpenseEntry._ID + " = ?",
                 new String[]{String.valueOf(expense.getId())}
         );
+
+        notifyExpenseChangeListeners();
     }
 
     public void deleteExpense(long id) {
@@ -212,5 +233,6 @@ public class DbHelper extends SQLiteOpenHelper {
                 ExpenseContract.ExpenseEntry._ID + " = ?",
                 new String[]{String.valueOf(id)}
         );
+        notifyExpenseChangeListeners();
     }
 }

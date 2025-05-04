@@ -31,6 +31,8 @@ public class ChartsViewModel extends AndroidViewModel {
 
         // Register a listener to update chart data whenever categories are changed (name or color)
         DbHelper.registerCategoryChangeListener(this::updateChartData);
+        // Register a listener to update chart data whenever an expense is changed
+        DbHelper.registerExpenseChangeListener(this::updateChartData);
     }
 
     public LiveData<List<PieEntry>> getChartEntries() {

@@ -44,8 +44,11 @@ public class HomeFragment extends Fragment {
         });
 
         viewModel.getSaveResult().observe(getViewLifecycleOwner(), msg -> {
-            Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
-            clearForm();
+            if (msg != null && !msg.isEmpty()) {
+                Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
+                clearForm();
+                viewModel.clearSaveResult(); // <--- clear after handling
+            }
         });
     }
 
