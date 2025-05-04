@@ -21,8 +21,8 @@ import java.util.Locale;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ViewHolder> {
     private List<Expense> expenses;
-    private Context context;
-    private OnExpenseChangeListener listener;
+    private final Context context;
+    private final OnExpenseChangeListener listener;
 
     public ExpenseAdapter(Context context, List<Expense> expenses, OnExpenseChangeListener listener) {
         this.context = context;

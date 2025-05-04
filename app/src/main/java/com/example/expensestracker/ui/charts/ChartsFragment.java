@@ -20,8 +20,8 @@ import java.util.*;
 public class ChartsFragment extends Fragment {
     private TextView textRange;
     private PieChart pieChart;
-    private Calendar startDate = Calendar.getInstance();
-    private Calendar endDate = Calendar.getInstance();
+    private final Calendar startDate = Calendar.getInstance();
+    private final Calendar endDate = Calendar.getInstance();
     private ChartsViewModel viewModel;
 
     @Override

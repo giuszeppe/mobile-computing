@@ -1,7 +1,7 @@
 package com.example.expensestracker.model;
 
 public class Category {
-    private long id;
+    private final long id;
     private String name;
     private String colorHex;
 
@@ -10,7 +10,7 @@ public class Category {
         this.name = name;
         this.colorHex = colorHex;
     }
-    public long getId() {return id; };
+    public long getId() {return id; }
     public String getName() { return name; }
     public String getColorHex() { return colorHex; }
 
